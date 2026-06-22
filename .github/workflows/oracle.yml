@@ -22,9 +22,6 @@ jobs:
         run: composer install
 
       - name: Build Environment and Key Files
-        env:
-          # Pasamos la llave de forma segura al entorno
-          RAW_PRIVATE_KEY: ${{ secrets.OCI_KEY_PRIVATE }}
         run: |
           cat << 'EOF' > .env
           OCI_REGION=${{ secrets.OCI_REGION }}
@@ -38,10 +35,13 @@ jobs:
           OCI_MEMORY_IN_GBS=${{ secrets.OCI_MEMORY_IN_GBS }}
           OCI_BOOT_VOLUME_SIZE_IN_GBS=${{ secrets.OCI_BOOT_VOLUME_SIZE_IN_GBS }}
           OCI_PRIVATE_KEY_FILENAME=private_key.pem
+          OCI_SHAPE=VM.Standard.A1.Flex
           EOF
           
-          # Usamos PHP para leer la variable, arreglar cualquier salto de línea roto y crear el archivo
-          php -r '$key = getenv("RAW_PRIVATE_KEY"); $key = str_replace("\\n", "\n", $key); file_put_contents("private_key.pem", $key);'
+          cat << 'EOF' > private_key.pem
+          ${{ secrets.OCI_KEY_PRIVATE }}
+          EOF
+          
           chmod 600 private_key.pem
 
       - name: Execute Instance Creation Script
