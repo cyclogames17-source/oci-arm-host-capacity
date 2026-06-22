@@ -36,6 +36,7 @@ jobs:
           OCI_BOOT_VOLUME_SIZE_IN_GBS=${{ secrets.OCI_BOOT_VOLUME_SIZE_IN_GBS }}
           OCI_PRIVATE_KEY_FILENAME=private_key.pem
           OCI_SHAPE=VM.Standard.A1.Flex
+          OCI_SSH_PUBLIC_KEY=${{ secrets.OCI_SSH_PUBLIC_KEY }}
           EOF
           
           cat << 'EOF' > private_key.pem
