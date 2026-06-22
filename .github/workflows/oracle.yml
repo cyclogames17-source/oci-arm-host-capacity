@@ -2,8 +2,8 @@ name: Oracle Cloud - Instance Creation Loop
 
 on:
   schedule:
-    - cron: '*/15 * * * *' # Corre automáticamente cada 15 minutos
-  workflow_dispatch: # Permite ejecutarlo manualmente
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
 
 jobs:
   run-script:
@@ -22,6 +22,9 @@ jobs:
         run: composer install
 
       - name: Build Environment and Key Files
+        env:
+          # Pasamos la llave de forma segura al entorno
+          RAW_PRIVATE_KEY: ${{ secrets.OCI_KEY_PRIVATE }}
         run: |
           cat << 'EOF' > .env
           OCI_REGION=${{ secrets.OCI_REGION }}
@@ -37,10 +40,8 @@ jobs:
           OCI_PRIVATE_KEY_FILENAME=private_key.pem
           EOF
           
-          cat << 'EOF' > private_key.pem
-          ${{ secrets.OCI_KEY_PRIVATE }}
-          EOF
-          
+          # Usamos PHP para leer la variable, arreglar cualquier salto de línea roto y crear el archivo
+          php -r '$key = getenv("RAW_PRIVATE_KEY"); $key = str_replace("\\n", "\n", $key); file_put_contents("private_key.pem", $key);'
           chmod 600 private_key.pem
 
       - name: Execute Instance Creation Script
