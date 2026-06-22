@@ -21,20 +21,27 @@ jobs:
       - name: Install Dependencies
         run: composer install
 
-      - name: Execute Instance Creation Script
-        env:
-          OCI_USER_ID: ${{ secrets.OCI_USER_ID }}
-          OCI_TENANCY_ID: ${{ secrets.OCI_TENANCY_ID }}
-          OCI_REGION: ${{ secrets.OCI_REGION }}
-          OCI_KEY_FINGERPRINT: ${{ secrets.OCI_KEY_FINGERPRINT }}
-          OCI_AVAILABILITY_DOMAIN: ${{ secrets.OCI_AVAILABILITY_DOMAIN }}
-          OCI_SUBNET_ID: ${{ secrets.OCI_SUBNET_ID }}
-          OCI_IMAGE_ID: ${{ secrets.OCI_IMAGE_ID }}
-          OCI_SSH_PUBLIC_KEY: ${{ secrets.OCI_SSH_PUBLIC_KEY }}
-          OCI_OCPUS: ${{ secrets.OCI_OCPUS }}
-          OCI_MEMORY_IN_GBS: ${{ secrets.OCI_MEMORY_IN_GBS }}
-          OCI_BOOT_VOLUME_SIZE_IN_GBS: ${{ secrets.OCI_BOOT_VOLUME_SIZE_IN_GBS }}
-          # Usamos la variable nativa de texto del script original:
-          OCI_KEY_TEXT: ${{ secrets.OCI_KEY_PRIVATE }}
+      - name: Build Environment and Key Files
         run: |
-          php index.php
+          cat << 'EOF' > .env
+          OCI_REGION=${{ secrets.OCI_REGION }}
+          OCI_USER_ID=${{ secrets.OCI_USER_ID }}
+          OCI_TENANCY_ID=${{ secrets.OCI_TENANCY_ID }}
+          OCI_KEY_FINGERPRINT=${{ secrets.OCI_KEY_FINGERPRINT }}
+          OCI_AVAILABILITY_DOMAIN=${{ secrets.OCI_AVAILABILITY_DOMAIN }}
+          OCI_SUBNET_ID=${{ secrets.OCI_SUBNET_ID }}
+          OCI_IMAGE_ID=${{ secrets.OCI_IMAGE_ID }}
+          OCI_OCPUS=${{ secrets.OCI_OCPUS }}
+          OCI_MEMORY_IN_GBS=${{ secrets.OCI_MEMORY_IN_GBS }}
+          OCI_BOOT_VOLUME_SIZE_IN_GBS=${{ secrets.OCI_BOOT_VOLUME_SIZE_IN_GBS }}
+          OCI_KEY_PRIVATE=private_key.pem
+          EOF
+          
+          cat << 'EOF' > private_key.pem
+          ${{ secrets.OCI_KEY_PRIVATE }}
+          EOF
+          
+          chmod 600 private_key.pem
+
+      - name: Execute Instance Creation Script
+        run: php index.php
